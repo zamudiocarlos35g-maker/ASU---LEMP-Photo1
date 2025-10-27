@@ -1,0 +1,464 @@
+<!-- Chosen Palette: Warm Neutrals (Stone, White, Teal Accent) -->
+<!-- Application Structure Plan: The design transforms the linear slide deck into a user-centric SPA. A sticky top navigation bar ("Home", "Routines", "Classroom System") allows users to either scroll linearly or jump to logical sections. "Home" combines the intro and philosophy. "Routines" consolidates all routines (from 3 slides) into a single, interactive tabbed section ("Daily", "Movement", "Classroom Flow") to improve usability and reduce scrolling. "Classroom System" groups rules, positive rewards, and negative consequences (from 3 slides) into one cohesive unit, using an interactive accordion for the "Consequence Tiers" to visually represent the hierarchy. This structure is chosen because it groups related content thematically, making the information more digestible and explorable than a simple presentation. -->
+<!-- Visualization & Content Choices: [Report Info: Slide 2 (Intro) -> Goal: Inform -> Viz/Presentation: HTML/Tailwind 2-col layout (Image + Text) -> Interaction: None -> Justification: Clear, professional introduction.] | [Report Info: Slides 4, 5, 6 (All Routines) -> Goal: Organize/Inform -> Viz/Presentation: Tabbed Interface (HTML/Tailwind + JS) -> Interaction: User clicks tab (e.g., "Movement") to show/hide content via JS -> Justification: Consolidates 3 slides into one interactive block, respecting user attention.] | [Report Info: Slide 7 (Rules) -> Goal: Inform -> Viz/Presentation: HTML/Tailwind list -> Interaction: None -> Justification: Clear, scannable list.] | [Report Info: Slide 8 (Positive) -> Goal: Inform -> Viz/Presentation: HTML/Tailwind list with icons (Unicode) -> Interaction: None -> Justification: Visually engaging list.] | [Report Info: Slide 9 (Negative) -> Goal: Organize/Show Hierarchy -> Viz/Presentation: Interactive Accordion (HTML/Tailwind + JS) -> Interaction: User clicks tier title to expand/collapse details via JS -> Justification: Visually and interactively reinforces the tiered hierarchy/process.] -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive LEMPT | Carlos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nav-link {
+            @apply px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700 transition-colors;
+        }
+
+        .nav-link.active {
+            @apply bg-teal-100 text-teal-700;
+        }
+
+        .tab-btn {
+            @apply px-4 py-2 font-medium text-sm rounded-lg transition-all;
+        }
+
+        .tab-btn.active {
+            @apply bg-teal-600 text-white shadow-md;
+        }
+
+        .tab-btn.inactive {
+            @apply text-stone-600 hover:bg-stone-200;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .accordion-header {
+            @apply flex justify-between items-center w-full px-5 py-4 text-left font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 focus:outline-none transition-colors;
+        }
+
+        .accordion-header.active {
+            @apply bg-stone-200;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-stone-800">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <span class="text-xl font-bold text-teal-700">Carlos's Classroom Plan</span>
+                </div>
+                <div class="hidden sm:block">
+                    <div class_id="nav-links" class="flex items-center space-x-4">
+                        <a href="#home" data-scroll-nav="home" class="nav-link active">Home</a>
+                        <a href="#routines" data-scroll-nav="routines" class="nav-link">Routines</a>
+                        <a href="#system" data-scroll-nav="system" class="nav-link">Classroom System</a>
+                        <a href="#contact" data-scroll-nav="contact" class="nav-link">Contact</a>
+                    </div>
+                </div>
+                <div class="sm:hidden">
+                    <button id="mobile-menu-btn"
+                        class="p-2 rounded-md text-stone-600 hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-teal-500">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <!-- Mobile menu, show/hide based on menu state. -->
+        <div class="sm:hidden hidden" id="mobile-menu">
+            <div id="nav-links-mobile" class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#home" data-scroll-nav="home" class="nav-link active block">Home</a>
+                <a href="#routines" data-scroll-nav="routines" class="nav-link block">Routines</a>
+                <a href="#system" data-scroll-nav="system" class="nav-link block">Classroom System</a>
+                <a href="#contact" data-scroll-nav="contact" class="nav-link block">Contact</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Section: Home / Intro -->
+        <section id="home" class="pt-16 -mt-16 mb-20">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
+                <div class="md:col-span-1 flex justify-center">
+                    <img src="httpsT://github.com/zamudiocarlos35g-maker/ASU---LEMP2/blob/main/CarlosEngageFinal-12~2%20(2).jpg?raw=true"
+                        alt="Carlos's Professional Headshot"
+                        class="w-48 h-48 sm:w-64 sm:h-64 rounded-full object-cover border-4 border-teal-600 shadow-lg"
+                        onerror="this.src='https://placehold.co/256x256/0d9488/FFFFFF?text=Carlos'; this.onerror=null;">
+                </div>
+                <div class="md:col-span-2">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-teal-700 mb-4">The "Tactile & Teamwork" Classroom</h1>
+                    <p class="text-lg text-stone-600 mb-6">
+                        This plan is designed to foster independence, safety, and a strong sense of community. My
+                        philosophy is built on my hands-on experience as a paraeducator for students with visual
+                        impairments.
+                    </p>
+                    <h2 class="text-2xl font-semibold text-stone-800 mb-3">Core Philosophy:</h2>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <span class="text-teal-600 mr-3 text-2xl">&#10003;</span>
+                            <span class="text-lg text-stone-700">Foster Independence</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-teal-600 mr-3 text-2xl">&#10003;</span>
+                            <span class="text-lg text-stone-700">Develop Critical Thinking</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-teal-600 mr-3 text-2xl">&#10003;</span>
+                            <span class="text-lg text-stone-700">Build Strong Self-Advocacy Skills</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Routines -->
+        <section id="routines" class="pt-20 -mt-16 mb-20">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-stone-900 mb-2">The Power of Predictability</h2>
+                <p class="text-lg text-stone-600 max-w-3xl mx-auto">
+                    Clear, consistent routines are essential for predictability and safety. For students with visual
+                    impairments, we build routines around non-visual cues: spatial memory, auditory signals, and tactile
+                    guides.
+                </p>
+            </div>
+
+            <!-- Interactive Tabs -->
+            <div class="bg-stone-50 rounded-xl p-4 sm:p-6 shadow-lg">
+                <div id="tabs-container"
+                    class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6 border-b border-stone-200 pb-4">
+                    <button data-tab="daily" class="tab-btn active">Daily Routines</button>
+                    <button data-tab="movement" class="tab-btn inactive">Movement & Transitions</button>
+                    <button data-tab="flow" class="tab-btn inactive">Classroom Flow</button>
+                </div>
+
+                <!-- Tab Content -->
+                <div id="tabs-content-container" class="px-2 sm:px-6 py-4">
+                    <!-- Daily Routines -->
+                    <div id="tab-daily" class="tab-content active">
+                        <h3 class="text-xl font-semibold text-teal-700 mb-4">Daily Routines</h3>
+                        <ul class="space-y-4">
+                            <li>
+                                <strong class="text-stone-800">Arriving at School:</strong>
+                                <span class="text-stone-600">Locate assigned tactile square, store backpack on labeled
+                                    hook, and begin Morning Sensory Task. <br><em class="text-sm">Auditory Cue: A 3-note
+                                        chime signals the start.</em></span>
+                            </li>
+                            <li>
+                                <strong class="text-stone-800">Turning in Work:</strong>
+                                <span class="text-stone-600">Locate "Done" tray using its unique texture marker. <br><em
+                                        class="text-sm">Auditory Cue: Soft verbal affirmation ("Thank you").</em></span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Movement -->
+                    <div id="tab-movement" class="tab-content">
+                        <h3 class="text-xl font-semibold text-teal-700 mb-4">Movement & Transitions</h3>
+                        <ul class="space-y-4">
+                            <li>
+                                <strong class="text-stone-800">Transitioning:</strong>
+                                <span class="text-stone-600">Listen for the "Transition Song" (15s jingle). Clear desk,
+                                    stand, and push chair in. <br><em class="text-sm">Cue: The jingle and the physical
+                                        'click' of the chair.</em></span>
+                            </li>
+                            <li>
+                                <strong class="text-stone-800">Line Up / Hallway:</strong>
+                                <span class="text-stone-600">Line up next to the tactile rope guide on the wall. Walk
+                                    with two fingers on the rope. <br><em class="text-sm">Cue: The rope is the primary
+                                        navigation tool.</em></span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Classroom Flow -->
+                    <div id="tab-flow" class="tab-content">
+                        <h3 class="text-xl font-semibold text-teal-700 mb-4">Classroom Flow</h3>
+                        <ul class="space-y-4">
+                            <li>
+                                <strong class="text-stone-800">Requesting Bathroom/Water:</strong>
+                                <span class="text-stone-600">Raise hand silently. Place non-writing hand flat on the desk
+                                    as a tactile self-regulation cue.</span>
+                            </li>
+                            <li>
+                                <strong class="text-stone-800">Material Distribution:</strong>
+                                <span class="text-stone-600">Materials are placed directly into students' hands or in the
+                                    same desk spot every time.</span>
+                            </li>
+                            <li>
+                                <strong class="text-stone-800">Fast Finishers:</strong>
+                                <span class="text-stone-600">Choose from the Fast Finisher Center (Braille/audio books,
+                                    tactile puzzles, sensory bins).</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Classroom System -->
+        <section id="system" class="pt-20 -mt-16 mb-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-stone-900 mb-2">Our Classroom System</h2>
+                <p class="text-lg text-stone-600 max-w-3xl mx-auto">
+                    We use a clear and positive system for rules, reinforcement, and consequences. The goal is always to
+                    model, practice, and re-teach.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                <!-- Column 1: Rules -->
+                <div class="bg-stone-50 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-semibold text-teal-700 mb-5 text-center">Our 5 Rules</h3>
+                    <ol class="list-decimal list-inside space-y-3">
+                        <li class="text-lg text-stone-700"><strong class="font-medium text-stone-900">Be
+                                Respectful</strong><br><span class="text-sm ml-5">(Use Kind Words and Actions)</span></li>
+                        <li class="text-lg text-stone-700"><strong class="font-medium text-stone-900">Be
+                                Responsible</strong><br><span class="text-sm ml-5">(Care for Our Tools and Space)</span>
+                        </li>
+                        <li class="text-lg text-stone-700"><strong class="font-medium text-stone-900">Be
+                                Ready</strong><br><span class="text-sm ml-5">(Follow Directions Quickly)</span></li>
+                        <li class="text-lg text-stone-700"><strong class="font-medium text-stone-900">Be
+                                Safe</strong><br><span class="text-sm ml-5">(Keep Your Body Secure)</span></li>
+                        <li class="text-lg text-stone-700"><strong class="font-medium text-stone-900">Be a Team
+                                Player</strong><br><span class="text-sm ml-5">(Help Others Learn)</span></li>
+                    </ol>
+                </div>
+
+                <!-- Column 2: Positive Reinforcement -->
+                <div class="bg-teal-50 p-6 rounded-xl shadow-lg border border-teal-200">
+                    <h3 class="text-2xl font-semibold text-teal-700 mb-5 text-center">Positive Reinforcement</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="text-teal-600 text-2xl mr-3">&#128077;</span>
+                            <div>
+                                <strong class="text-stone-900">Teacher Attention</strong>
+                                <p class="text-stone-600 text-sm">Frequent, specific, and genuine praise.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-600 text-2xl mr-3">&#11088;</span>
+                            <div>
+                                <strong class="text-stone-900">Public Recognition</strong>
+                                <p class="text-stone-600 text-sm">Celebrating the "Braille Star" over announcements.
+                                </p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-600 text-2xl mr-3">&#127891;</span>
+                            <div>
+                                <strong class="text-stone-900">Certificates & Tokens</strong>
+                                <p class="text-stone-600 text-sm">Weekly awards for meeting specific goals.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-600 text-2xl mr-3">&#127881;</span>
+                            <div>
+                                <strong class="text-stone-900">Special Activities</strong>
+                                <p class="text-stone-600 text-sm">Low-cost, high-interest privileges (e.g., "Lunch with
+                                    the Teacher").</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Consequences -->
+                <div class="bg-stone-50 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-semibold text-teal-700 mb-5 text-center">Consequence Hierarchy</h3>
+                    <p class="text-sm text-stone-600 text-center mb-4">Delivered privately and calmly. The goal is always
+                        re-teaching.</p>
+                    <div id="accordion-container" class="space-y-2">
+                        <!-- Tier 1 -->
+                        <div>
+                            <button class="accordion-header rounded-t-lg" data-accordion="tier1">
+                                <span><strong>Tier 1:</strong> Non-Verbal Cue</span>
+                                <span class="accordion-icon text-xl text-teal-600">+</span>
+                            </button>
+                            <div class="accordion-content">
+                                <p class="p-4 bg-white text-stone-600 rounded-b-lg">A quiet tap on the desk or a
+                                    private, quiet reminder. This is the least intrusive cue.</p>
+                            </div>
+                        </div>
+                        <!-- Tier 2 -->
+                        <div>
+                            <button class="accordion-header" data-accordion="tier2">
+                                <span><strong>Tier 2:</strong> Rule Review & Privilege Loss</span>
+                                <span class="accordion-icon text-xl text-teal-600">+</span>
+                            </button>
+                            <div class="accordion-content">
+                                <p class="p-4 bg-white text-stone-600 rounded-b-lg">Student misses 5 minutes of choice
+                                    time. The behavior is logged by the teacher.</p>
+                            </div>
+                        </div>
+                        <!-- Tier 3 -->
+                        <div>
+                            <button class="accordion-header" data-accordion="tier3">
+                                <span><strong>Tier 3:</strong> Re-teaching & Parent Contact</span>
+                                <span class="accordion-icon text-xl text-teal-600">+</span>
+                            </button>
+                            <div class="accordion-content">
+                                <p class="p-4 bg-white text-stone-600 rounded-b-lg">Student completes a Behavior
+                                    Re-teaching Form (large print/braille). **Contact with parent/guardian.**</p>
+                            </div>
+                        </div>
+                        <!-- Tier 4 -->
+                        <div>
+                            <button class="accordion-header rounded-b-lg" data-accordion="tier4">
+                                <span><strong>Tier 4:</strong> Office Referral</span>
+                                <span class="accordion-icon text-xl text-teal-600">+</span>
+                            </button>
+                            <div class="accordion-content">
+                                <p class="p-4 bg-white text-stone-600 rounded-b-lg">Reserved for serious safety issues.
+                                    **Immediate parent contact** and documented action.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-stone-800 text-stone-300 mt-20">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+            <h2 class="text-2xl font-semibold text-white mb-3">Let's Partner Together</h2>
+            <p class="mb-4">
+                This plan is our roadmap to fostering independence, thinking, and self-advocacy together.
+            </p>
+            <p class="text-lg">
+                Please reach out with any questions!
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Mobile Menu ---
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // --- Tabbed Interface ---
+            const tabsContainer = document.getElementById('tabs-container');
+            const tabsContentContainer = document.getElementById('tabs-content-container');
+
+            if (tabsContainer) {
+                tabsContainer.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('tab-btn')) {
+                        const tabId = e.target.dataset.tab;
+
+                        // Update buttons
+                        tabsContainer.querySelectorAll('.tab-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                            btn.classList.add('inactive');
+                        });
+                        e.target.classList.add('active');
+                        e.target.classList.remove('inactive');
+
+                        // Update content
+                        tabsContentContainer.querySelectorAll('.tab-content').forEach(content => {
+                            content.classList.remove('active');
+                        });
+                        document.getElementById(`tab-${tabId}`).classList.add('active');
+                    }
+                });
+            }
+
+            // --- Accordion ---
+            const accordionContainer = document.getElementById('accordion-container');
+            if (accordionContainer) {
+                accordionContainer.addEventListener('click', (e) => {
+                    const header = e.target.closest('.accordion-header');
+                    if (header) {
+                        const content = header.nextElementSibling;
+                        const icon = header.querySelector('.accordion-icon');
+
+                        if (content.style.maxHeight) {
+                            // Close
+                            content.style.maxHeight = null;
+                            header.classList.remove('active');
+                            icon.textContent = '+';
+                        } else {
+                            // Open
+                            content.style.maxHeight = content.scrollHeight + 'px';
+                            header.classList.add('active');
+                            icon.textContent = '−';
+                        }
+                    }
+                });
+            }
+
+            // --- Scrollspy for Nav ---
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const navLinkMap = new Map();
+            navLinks.forEach(link => {
+                navLinkMap.set(link.dataset.scrollNav, link);
+            });
+
+            const onScroll = () => {
+                let currentSection = 'home';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (window.scrollY >= sectionTop - 100) {
+                        currentSection = section.id;
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.dataset.scrollNav === currentSection) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+
+            window.addEventListener('scroll', onScroll);
+
+            // --- Close mobile menu on link click ---
+            document.querySelectorAll('#mobile-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>
+
+
